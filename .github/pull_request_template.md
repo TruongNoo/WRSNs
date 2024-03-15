@@ -3,9 +3,9 @@
 
 This pull request introduces the following changes:
 
-- [ ] Added a new feature/functionality for computing node radii and plotting circles and intersections.
-- [ ] Fixed bugs related to circle intersection calculations.
-- [ ] Updated dependencies to resolve security vulnerabilities.
+- [X] Added a new feature/functionality for computing node radii and plotting circles and intersections.
+- [X] Fixed bugs related to circle intersection calculations.
+- [X] Updated dependencies to resolve security vulnerabilities.
 
 ## Changes Made
 <!--- Describe in detail the changes you made in this pull request. -->
