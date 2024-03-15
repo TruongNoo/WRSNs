@@ -1,25 +1,23 @@
-## Pull Request
+# Pull Request
 
-### Mô tả
-[//]: # (Vui lòng cung cấp mô tả chi tiết về nội dung của pull request)
+## Description
+[//]: # (Briefly describe the changes introduced by this pull request.)
 
-### Vấn đề liên quan
-[//]: # (Nếu có, vui lòng liệt kê các issue liên quan theo định dạng "#123")
+## Proposed Changes
+[//]: # (List the proposed changes introduced by this pull request.)
 
-### Các thay đổi
-[//]: # (Liệt kê các thay đổi chính bạn thực hiện trong pull request này)
+## Related Issues
+[//]: # (List any related issues addressed or fixed by this pull request.)
 
-### Kiểm tra
-[//]: # (Vui lòng kiểm tra các mục dưới trước khi tạo pull request)
-- [ ] Pull request đã được kiểm tra lại
-- [ ] Mã đã được kiểm tra lại và đảm bảo tuân thủ các quy tắc lập trình
-- [ ] Tất cả các test đã chạy thành công
+## Screenshots
+[//]: # (Include any relevant screenshots or visuals if applicable.)
 
-### Môi trường thử nghiệm
-[//]: # (Nếu áp dụng, vui lòng cung cấp môi trường thử nghiệm, bao gồm phiên bản của các công cụ và các điều kiện cần thiết để kiểm tra các thay đổi)
+## Checklist
+Please check if your PR fulfills the following requirements:
+- [ ] The code follows the project's coding conventions.
+- [ ] Tests have been added to cover the changes (if applicable).
+- [ ] Documentation has been updated (if necessary).
+- [ ] The code is properly commented, especially new functions or significant changes.
 
-### Hình ảnh (nếu có)
-[//]: # (Nếu áp dụng, vui lòng cung cấp hình ảnh minh họa hoặc các phương tiện khác để mô tả các thay đổi)
-
-### Ghi chú
-[//]: # (Thêm bất kỳ thông tin hoặc ghi chú nào bạn muốn chia sẻ về pull request này)
+## Additional Notes
+[//]: # (Add any additional notes or context for the reviewers.)
