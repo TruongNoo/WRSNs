@@ -3,7 +3,7 @@
 "threshold" : 0
 "velocity" : 5
 "pm" : 1
-"charging_range" : 80
+"charging_range" : 30
 "alpha" : 900
 "beta" : 30
 "epsilon" : 0.0000000001

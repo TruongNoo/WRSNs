@@ -1,21 +1,22 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from shapely.geometry import Point, Polygon
 from math import sqrt
 from itertools import combinations
 import yaml
+from matplotlib.patches import Rectangle
+from shapely.geometry import Point, Polygon, MultiPolygon
 
 # Đọc dữ liệu từ tệp YAML
-with open('Data_WRSN/network_scenarios/hanoiEditbyUser.yaml', 'r') as file:
+with open('D:\Code\Python\BaoCaoNghienCuu\WRSN\physical_env\\network\\network_scenarios\hanoi1000n50.yaml', 'r') as file:
     data = yaml.safe_load(file)
 
-with open('Data_WRSN/default.yaml', 'r') as file:
+with open('D:\Code\Python\BaoCaoNghienCuu\WRSN\physical_env\mc\mc_types\default.yaml', 'r') as file:
     defData = yaml.safe_load(file)
 
 node_phy_spe = data['node_phy_spe']
 efs = node_phy_spe['efs']
 emp = node_phy_spe['emp']
-elec = node_phy_spe['er'] 
+elec = node_phy_spe['er']
 l = node_phy_spe['package_size']
 Rc = node_phy_spe['com_range']
 d0 = np.sqrt(efs / emp)
@@ -77,41 +78,33 @@ def find_nearest_points_within_distance(d, points):
         nearest_points.append(nearest_point)
     return nearest_points
 
-def compute_node_radius(centers):
+def compute_node_radius(nodes_info):
     """
-    Tính và trả về bán kính của từng hình tròn.
+    Tính và trả về bán kính của từng hình tròn dựa trên năng lượng tiêu hao của mỗi nút cảm biến.
 
     Parameters:
-        centers (list of tuples): Tập hợp các trung tâm hình tròn.
+        nodes_info (dict): Dữ liệu về năng lượng tiêu hao của mỗi nút cảm biến.
 
     Returns:
-        list: Bán kính của từng hình tròn.
+        list: Bán kính của từng hình tròn dựa trên năng lượng tiêu hao của mỗi nút cảm biến.
     """
-    arr_nearest_point = find_nearest_points_within_distance(Rc, centers)
-    arr_radius = []
-    for i in range(len(centers)):
-        dist = np.sqrt((centers[i][0] - arr_nearest_point[i][0])**2 + (centers[i][1] - arr_nearest_point[i][1])**2)
-        er = l * elec
-        if (dist < d0):
-            et = er + l * efs * dist**2
-        else:
-            et = er + l * efs * dist**4
-        ej = et + er
-        radius = np.sqrt(alpha / ej) - beta
+    arrRadius = []
+    for node_id, energy_consumption in nodes_info.items():
+        radius = np.sqrt(alpha / energy_consumption) - beta
         print(radius)
-        arr_radius.append(radius)
-    return arr_radius
+        arrRadius.append(radius)
+    return arrRadius
 
 def find_non_intersecting_circles(centers, radius):
     """
-    Tìm và trả về tập hợp các hình tròn giao nhau.
+    Tìm và trả về tập hợp các hình tròn không giao nhau.
 
     Parameters:
         centers (list of tuples): Tập hợp các trung tâm hình tròn.
         radius (list of floats): Bán kính của từng hình tròn.
 
     Returns:
-        list: Tập hợp các hình tròn giao nhau.
+        list: Tập hợp các hình tròn không giao nhau.
     """
     intersections = set()
     for i in range(len(centers)):
@@ -144,13 +137,13 @@ def find_non_intersecting_circles(centers, radius):
 
 def remove_duplicate_sets(set):
     """
-    Loại bỏ các tập con trùng lặp trong tập hợp.
+    Loại bỏ các tập hợp con trùng lặp trong danh sách.
 
     Parameters:
-        set (list of lists): Tập hợp các tập con.
+        set (list): Danh sách các tập hợp con.
 
     Returns:
-        list: Tập hợp các tập con không trùng lặp.
+        list: Danh sách các tập hợp con không trùng lặp.
     """
     different = False
     new_arr = []
@@ -212,14 +205,81 @@ def remove_common_elements(arr, nodes):
     find_and_add_isolated_circle(arr, nodes)
     return arr
 
-def plot_circles(nodes, arr_name_nodes, radiuses):
+def draw_sensor_icon(ax, x, y, icon_path, icon_size):
     """
-    Vẽ các hình tròn và các điểm giao nhau trên đồ thị.
+    Vẽ biểu tượng cảm biến tại tọa độ (x, y).
 
     Parameters:
+        ax (matplotlib.axes.Axes): Đối tượng trục của đồ thị.
+        x (float): Tọa độ x của trung tâm.
+        y (float): Tọa độ y của trung tâm.
+        icon_path (str): Đường dẫn đến hình ảnh biểu tượng cảm biến.
+        icon_size (float): Kích thước của biểu tượng.
+
+    Returns:
+        None
+    """
+    icon = plt.imread(icon_path)
+    ax.imshow(icon, extent=[x - icon_size / 2, x + icon_size / 2, y - icon_size / 2, y + icon_size / 2])
+
+def draw_mc_icon(ax, x, y, icon_path, icon_size):
+    """
+    Vẽ biểu tượng của thiết bị sạc tại tọa độ (x, y).
+
+    Parameters:
+        ax (matplotlib.axes.Axes): Đối tượng trục của đồ thị.
+        x (float): Tọa độ x của trung tâm.
+        y (float): Tọa độ y của trung tâm.
+        icon_path (str): Đường dẫn đến hình ảnh biểu tượng của thiết bị sạc.
+        icon_size (float): Kích thước của biểu tượng.
+
+    Returns:
+        None
+    """
+    icon = plt.imread(icon_path)
+    ax.imshow(icon, extent=[x - icon_size / 2, x + icon_size / 2, y - icon_size / 2, y + icon_size / 2])
+
+def draw_battery(ax, x, y, width, height, charge_percentage):
+    """
+    Vẽ biểu tượng pin tại tọa độ (x, y).
+
+    Parameters:
+        ax (matplotlib.axes.Axes): Đối tượng trục của đồ thị.
+        x (float): Tọa độ x của góc dưới bên trái của biểu tượng pin.
+        y (float): Tọa độ y của góc dưới bên trái của biểu tượng pin.
+        width (float): Chiều rộng của biểu tượng pin.
+        height (float): Chiều cao của biểu tượng pin.
+        charge_percentage (float): Phần trăm pin còn lại.
+
+    Returns:
+        None
+    """
+    ax.add_patch(Rectangle((x, y), width, height, edgecolor='black', facecolor='none'))
+    charge_height = height * charge_percentage / 100
+
+    if charge_percentage <= 20:
+        color = 'red'
+    elif charge_percentage > 20 and charge_percentage <= 75:
+        color = 'yellow'
+    else:
+        color = 'lime'
+
+    ax.add_patch(Rectangle((x, y), width, charge_height, edgecolor='none', facecolor=color))
+
+    bolt_x = x + width / 2
+    bolt_y = y + charge_height / 2
+    ax.text(bolt_x, bolt_y, '⚡', fontsize=20, color='blue', va='center', ha='center')
+
+def plot_circles(net, nodes, arr_name_nodes, radiuses, base_station_icon_path="images/bs.png"):
+    """
+    Vẽ các hình tròn và các điểm giao nhau trên đồ thị, bao gồm bán kính sạc của các hình tròn.
+
+    Parameters:
+        net (object): Đối tượng mạng.
         nodes (list): Tập hợp các điểm trung tâm hình tròn.
-        arr_ten_nodes (list): Tập hợp các tên hình tròn.
-        radiuses (list of floats): Bán kính của từng hình tròn.
+        arr_name_nodes (list): Tập hợp các tên hình tròn.
+        radiuses (list of floats): Bán kính sạc của từng hình tròn.
+        base_station_icon_path (str): Đường dẫn đến hình ảnh biểu tượng trạm cơ sở.
 
     Returns:
         list: Tập hợp các điểm giao nhau.
@@ -230,7 +290,15 @@ def plot_circles(nodes, arr_name_nodes, radiuses):
         for i in centers:
             circle = Point(nodes[i]).buffer(radiuses[i])
             circles.append(circle)
-            plt.plot(nodes[i][0], nodes[i][1], marker='o', color='black', markersize=1)
+            draw_sensor_icon(plt.gca(), nodes[i][0], nodes[i][1], 'images/sensor.png', 35)
+
+            # Vẽ bán kính sạc của hình tròn
+            charging_circle = plt.Circle((nodes[i][0], nodes[i][1]), radiuses[i], color='green', fill=False, linestyle='--', linewidth=0.5)
+            plt.gca().add_patch(charging_circle)
+
+        # Vẽ biểu tượng trạm cơ sở
+        base_station_x, base_station_y = base_station
+        draw_sensor_icon(plt.gca(), base_station_x, base_station_y, base_station_icon_path, 75)
 
         for circle in circles:
             plt.plot(circle.exterior.xy[0], circle.exterior.xy[1], color='b', linewidth=0.5)
@@ -239,28 +307,13 @@ def plot_circles(nodes, arr_name_nodes, radiuses):
         for circle in circles[1:]:
             intersections = intersections.intersection(circle)
 
-        if isinstance(intersections, Polygon):
+        if isinstance(intersections, (Polygon, MultiPolygon)):
             centroid = intersections.centroid
-            plt.plot(centroid.x, centroid.y, marker='o', color='r', markersize=3)
+            if not centroid.is_empty:
+                plt.plot(centroid.x, centroid.y, marker='*', color='blue', markersize=7.5)
         else:
             plt.fill(circles[0].exterior.xy[0], circles[0].exterior.xy[1], color='orange', alpha=0.3)
-            plt.plot(nodes[centers[0]][0], nodes[centers[0]][1], marker='o', color='r', markersize=3)
+            plt.plot(nodes[centers[0]][0], nodes[centers[0]][1], marker='*', color='blue', markersize=7.5)
+        
         all_intersections.append(intersections)
     return all_intersections
-
-radius_node = compute_node_radius(nodes)
-
-set_arr_non_intersecting_circles = find_non_intersecting_circles(nodes, radius_node)
-set_arr_non_intersecting_circles = remove_duplicate_sets(set_arr_non_intersecting_circles)
-set_arr_non_intersecting_circles = remove_common_elements(set_arr_non_intersecting_circles, nodes)
-
-# Plotting
-plt.figure(figsize=(10, 10))
-plot_circles(nodes, set_arr_non_intersecting_circles, radius_node)
-plt.scatter(*base_station, color='green', label='Base Station')
-plt.legend()
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.title('Circles and Intersections in Hanoi')
-plt.grid(True)
-plt.show()
